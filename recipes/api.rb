@@ -37,6 +37,11 @@ platform_options['cinder_api_packages'].each do |pkg|
   end
 end
 
+# remove the cinder-wsgi.conf automatically generated from package
+apache_config 'cinder-wsgi' do
+  enable false
+end
+
 db_type = node['openstack']['db']['block-storage']['service_type']
 node['openstack']['db']['python_packages'][db_type].each do |pkg|
   package pkg do
@@ -56,11 +61,6 @@ if node['openstack']['block-storage']['policyfile_url']
     group node['openstack']['block-storage']['group']
     mode 0o0644
   end
-end
-
-# remove the cinder-wsgi.conf automatically generated from package
-apache_config 'cinder-wsgi' do
-  enable false
 end
 
 web_app 'cinder-api' do
