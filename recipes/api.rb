@@ -30,6 +30,16 @@ include_recipe 'openstack-block-storage::cinder-common'
 bind_service = node['openstack']['bind_service']['all']['block-storage']
 platform_options = node['openstack']['block-storage']['platform']
 
+# create empty file to prevent non-working config from getting installed
+file '/etc/apache2/conf-available/cinder-wsgi.conf' do
+  owner 'root'
+  group 'www-data'
+  mode '0640'
+  action :create
+  content 'Chef openstack-block-storage: tmp file to block config from package'
+  only_if { platform_family? 'debian' }
+end
+
 platform_options['cinder_api_packages'].each do |pkg|
   package pkg do
     options platform_options['package_overrides']
@@ -37,9 +47,14 @@ platform_options['cinder_api_packages'].each do |pkg|
   end
 end
 
-# remove the cinder-wsgi.conf automatically generated from package
+# disable the cinder-wsgi.conf automatically generated from package
 apache_config 'cinder-wsgi' do
   enable false
+end
+
+# remove empty file
+file '/etc/apache2/conf-available/cinder-wsgi.conf' do
+  action :delete
 end
 
 db_type = node['openstack']['db']['block-storage']['service_type']
